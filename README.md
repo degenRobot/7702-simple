@@ -1,12 +1,11 @@
-# BatchCallAndSponsor - Sepolia Edition
+# BatchCallAndSponsor - 7702 Simple Demo
 
 An educational project demonstrating account abstraction and sponsored transaction execution using EIP-7702 on the Sepolia testnet. This project uses Foundry for deployment, scripting, and testing.
 
-## Overview
+This implementation of ERC-7702 enables batch execution and sponsored transactions, demonstrating how to use Ethereum Account Abstraction with ERC-4337 and ERC-7702 standards to enable:
 
-The `BatchCallAndSponsor` contract enables batch execution of calls by verifying signatures over a nonce and batched call data. It supports:
-- **Direct execution**: by the smart account itself.
-- **Sponsored execution**: via an off-chain signature (by a sponsor).
+1. Batch execution of multiple transactions in a single call
+2. Sponsored transactions where one account pays gas fees on behalf of another
 
 Replay protection is provided by an internal nonce that increments after each batch execution.
 
@@ -15,12 +14,31 @@ Replay protection is provided by an internal nonce that increments after each ba
 - Batch transaction execution
 - Off-chain signature verification using ECDSA
 - Replay protection through nonce incrementation
-- Support for both ETH and ERC-20 token transfers
+- Support for both ETH and ERC-20 token transfers (configured to use small amounts - 0.0001 ETH)
 
 ## Prerequisites
 
 - [Foundry](https://github.com/foundry-rs/foundry)
 - Solidity ^0.8.20
+
+## Dependencies
+
+This project depends on the following libraries:
+
+```sh
+# Install dependencies
+forge install foundry-rs/forge-std --no-commit
+forge install OpenZeppelin/openzeppelin-contracts --no-commit
+```
+
+## Gas Requirements
+
+Both accounts (EOA and Sponsor) need to have sufficient gas for their transactions:
+
+- EOA account: For deploying contracts and directly executing transactions
+- Sponsor account: For executing transactions on behalf of the EOA
+
+Transactions are configured to use small amounts (0.0001 ETH) to avoid potential issues with test networks.
 
 ## Running the Project on Sepolia
 
@@ -66,7 +84,7 @@ Expected output:
 Logs:
   EOA Address: 0xfA86ED07480F465eB2EbF6E970e12371EB87526B
   Sponsor Address: 0x0137882ef90C077ef9D48Dde2bC97C64EB8E4f98
-  Sending 1 ETH from EOA to Sponsor and transferring 100 tokens to Sponsor in a single transaction
+  Sending 0.0001 ETH from EOA to Sponsor and transferring 100 tokens to Sponsor in a single transaction
   Initial EOA balance: 10000000000000000000
   Initial Sponsor balance: 8725891919433764884
 

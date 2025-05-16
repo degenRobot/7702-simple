@@ -56,7 +56,7 @@ contract BatchCallAndSponsorTest is Test {
     }
 
     function testDirectExecution() public {
-        console2.log("Sending 1 ETH from EOA to Sponsor and transferring 100 tokens to Sponsor in a single transaction");
+        console2.log("Sending 0.0001 ETH from EOA to Sponsor and transferring 100 tokens to Sponsor in a single transaction");
         
         // Record initial balances
         uint256 sponsorInitialBalance = SPONSOR_ADDRESS.balance;
@@ -69,7 +69,7 @@ contract BatchCallAndSponsorTest is Test {
         BatchCallAndSponsor.Call[] memory calls = new BatchCallAndSponsor.Call[](2);
 
         // ETH transfer
-        calls[0] = BatchCallAndSponsor.Call({to: SPONSOR_ADDRESS, value: 1 ether, data: ""});
+        calls[0] = BatchCallAndSponsor.Call({to: SPONSOR_ADDRESS, value: 0.0001 ether, data: ""});
 
         // Token transfer
         calls[1] = BatchCallAndSponsor.Call({

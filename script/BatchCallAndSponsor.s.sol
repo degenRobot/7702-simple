@@ -69,7 +69,7 @@ contract BatchCallAndSponsorScript is Script {
         BatchCallAndSponsor.Call[] memory calls = new BatchCallAndSponsor.Call[](2);
 
         // ETH transfer (smaller amount to avoid OutOfFunds error)
-        calls[0] = BatchCallAndSponsor.Call({to: SPONSOR_ADDRESS, value: 0.001 ether, data: ""}); // Use 0.001 ETH instead of 1 ETH
+        calls[0] = BatchCallAndSponsor.Call({to: SPONSOR_ADDRESS, value: 0.0001 ether, data: ""}); // Use 0.0001 ETH for consistency
 
         // Token transfer
         calls[1] = BatchCallAndSponsor.Call({
@@ -88,18 +88,21 @@ contract BatchCallAndSponsorScript is Script {
     }
 
     function performSponsoredExecution() internal {
-        console.log("Sending 1 ETH from EOA to a random address, the transaction is sponsored by the Sponsor");
+        console.log("Sending 0.0001 ETH from EOA to a random address, the transaction is sponsored by the Sponsor");
 
         BatchCallAndSponsor.Call[] memory calls = new BatchCallAndSponsor.Call[](1);
         address recipient = makeAddr("recipient");
-        calls[0] = BatchCallAndSponsor.Call({to: recipient, value: 0.001 ether, data: ""}); // Use 0.001 ETH instead of 1 ETH
+        calls[0] = BatchCallAndSponsor.Call({to: recipient, value: 0.0001 ether, data: ""}); // Use 0.0001 ETH for consistency
 
         // EOA signs a delegation allowing `implementation` to execute transactions on their behalf.
         Vm.SignedDelegation memory signedDelegation = vm.signDelegation(address(implementation), EOA_PK);
 
         // Sponsor attaches the signed delegation from EOA and broadcasts it.
+        console.log("Starting sponsor broadcast with address:", SPONSOR_ADDRESS);
         vm.startBroadcast(SPONSOR_PK);
+        console.log("Attaching delegation from EOA");
         vm.attachDelegation(signedDelegation);
+        console.log("Delegation attached successfully");
 
         // Verify that EOA's account now temporarily behaves as a smart contract.
         bytes memory code = address(EOA_ADDRESS).code;
@@ -108,14 +111,34 @@ contract BatchCallAndSponsorScript is Script {
 
         bytes memory encodedCalls = "";
         for (uint256 i = 0; i < calls.length; i++) {
+            console.log("Call", i, "to:", calls[i].to);
+            console.log("Call", i, "value:", calls[i].value);
+            console.log("Call", i, "data length:", calls[i].data.length);
             encodedCalls = abi.encodePacked(encodedCalls, calls[i].to, calls[i].value, calls[i].data);
         }
-        bytes32 digest = keccak256(abi.encodePacked(BatchCallAndSponsor(EOA_ADDRESS).nonce(), encodedCalls));
+        
+        uint256 currentNonce = BatchCallAndSponsor(EOA_ADDRESS).nonce();
+        console.log("Current nonce for EOA:", currentNonce);
+        bytes32 digest = keccak256(abi.encodePacked(currentNonce, encodedCalls));
+        console.log("Digest created for signature");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(EOA_PK, MessageHashUtils.toEthSignedMessageHash(digest));
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // As Sponsor, execute the transaction via EOA's temporarily assigned contract.
-        BatchCallAndSponsor(EOA_ADDRESS).execute(calls, signature);
+        console.log("Attempting to execute sponsored transaction");
+        console.log("EOA address cast as contract:", address(BatchCallAndSponsor(EOA_ADDRESS)));
+        console.log("Signature length:", signature.length);
+        
+        try BatchCallAndSponsor(EOA_ADDRESS).execute(calls, signature) {
+            console.log("Transaction executed successfully");
+        } catch Error(string memory reason) {
+            console.log("Transaction failed with reason:", reason);
+        } catch (bytes memory lowLevelData) {
+            console.log("Transaction failed with low level error");
+            // Convert bytes to hex string for debugging
+            string memory hexString = vm.toString(lowLevelData);
+            console.log("Low level error data:", hexString);
+        }
 
         vm.stopBroadcast();
 
