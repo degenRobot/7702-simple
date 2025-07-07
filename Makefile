@@ -1,7 +1,7 @@
 -include .env
 
 # Define .PHONY to ensure these targets always run regardless of file existence
-.PHONY: update build size test trace gas deploy deploy-trace clean
+.PHONY: update build size test trace gas deploy deploy-trace redelegate clean
 
 # deps
 update:; forge update
@@ -23,6 +23,7 @@ test-match  :; forge test -vv --match-test $(test_pattern) --fork-url ${SEPOLIA_
 # Deployment scripts
 deploy  :; forge script ./script/BatchCallAndSponsor.s.sol --tc BatchCallAndSponsorScript --broadcast --rpc-url ${SEPOLIA_URL}
 deploy-trace  :; forge script ./script/BatchCallAndSponsor.s.sol --tc BatchCallAndSponsorScript --broadcast --rpc-url ${SEPOLIA_URL} -vvvv
+redelegate  :; forge script ./script/ReDelegateAuthority.s.sol --tc ReDelegateAuthorityScript --broadcast --rpc-url ${SEPOLIA_URL}
 
 # clean
 clean  :; forge clean
